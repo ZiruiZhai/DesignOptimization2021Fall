@@ -15,10 +15,10 @@ close all; % Close all windows
 f = @(x) x(1)^2+(x(2)-3)^2; % replace with your objective function
 % In the same way, we also provide the gradient of the 
 % objective:
-df = @(x) [2*x(1) , 2*x(2)-6]; % replace accordingly
+df = @(x)objectiveg(x); % replace accordingly
 
-g = @(x) [x(2)^2-2*x(1); (x(2)-1)^2+5*x(1)-15];
-dg = @(x) [-2 2*x(2); 5 2*x(2)-2];
+g = @(x)constraint(x);
+dg = @(x)constraintg(x);
 
 % Note that explicit gradient and Hessian information is only optional.
 % However, providing these information to the search algorithm will save
@@ -45,14 +45,9 @@ end
 %% Run optimization
 % Run your implementation of SQP algorithm. See mysqp.m
 solution = mysqp(f, df, g, dg, x0, opt);
-x_ = solution.x(:,end)
-g_ = g(solution.x(:,end))
-f_ = f(solution.x(:,end))
-
-
 
 %% Report
-%report(solution,f,g);
+report(solution,f,g);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -88,7 +83,7 @@ function solution = mysqp(f, df, g, dg, x0, opt)
             [s, mu_new] = solveqp(x, W, df, g, dg);
         else
             % Solve the QP subproblem to find s and mu (using MATLAB's solver)
-            qpalg = optimset('Algorithm', 'interior-point-convex', 'Display', 'off');
+            qpalg = optimset('Algorithm', 'active-set', 'Display', 'off');
             [s,~,~,~,lambda] = quadprog(W,[df(x)]',dg(x),-g(x),[], [], [], [], [],  qpalg);
             mu_new = lambda.ineqlin;
         end
@@ -295,4 +290,3 @@ function [s, mu] = solve_activeset(x, W, c, A, b)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
